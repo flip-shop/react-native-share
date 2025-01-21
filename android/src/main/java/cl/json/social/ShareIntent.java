@@ -6,6 +6,8 @@ import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ClipData;
+import android.content.ClipDescription;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -165,6 +167,14 @@ public abstract class ShareIntent {
             ShareFiles fileShare = getFileShares(options);
             if (fileShare.isFile()) {
                 ArrayList<Uri> uriFile = fileShare.getURI();
+
+                ClipData clip = new ClipData(new ClipDescription("Files", new String[]{fileShare.getType()}), new ClipData.Item(uriFile.get(0)));
+
+                for (int i = 1; i < uriFile.size(); i++) {
+                    clip.addItem(new ClipData.Item(uriFile.get(i)));
+                }
+                
+                this.getIntent().setClipData(clip);
                 this.getIntent().setAction(Intent.ACTION_SEND_MULTIPLE);
                 this.getIntent().setType(fileShare.getType());
                 this.getIntent().putParcelableArrayListExtra(Intent.EXTRA_STREAM, uriFile);
@@ -183,7 +193,9 @@ public abstract class ShareIntent {
             this.fileShare = getFileShare(options);
             if (this.fileShare.isFile()) {
                 Uri uriFile = this.fileShare.getURI();
+                ClipData clip = ClipData.newUri(this.reactContext.getContentResolver(), "File", uriFile);
                 this.getIntent().setType(this.fileShare.getType());
+                this.getIntent().setClipData(clip);
                 this.getIntent().putExtra(Intent.EXTRA_STREAM, uriFile);
                 this.getIntent().addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 if (!TextUtils.isEmpty(message)) {
