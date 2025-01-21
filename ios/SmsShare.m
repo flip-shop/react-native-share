@@ -2,14 +2,24 @@
 #import "RNShareUtils.h"
 
 
+@interface SmsShare ()
+
+@property (nonatomic, copy) RCTPromiseRejectBlock rejectBlock;
+@property (nonatomic, copy) RCTPromiseResolveBlock resolveBlock;
+
+@end
+
 @implementation SmsShare
 
-
 - (void)shareSingle:(NSDictionary *)options
-    reject:(RCTPromiseRejectBlock)reject
-    resolve:(RCTPromiseResolveBlock)resolve {
+             reject:(RCTPromiseRejectBlock)reject
+            resolve:(RCTPromiseResolveBlock)resolve {
 
     if ([options objectForKey:@"message"] && [options objectForKey:@"message"] != [NSNull null]) {
+        [self cleanup];
+
+        self.rejectBlock = reject;
+        self.resolveBlock = resolve;
 
         NSString *message = [RCTConvert NSString:options[@"message"]];
         NSString *recipient = [RCTConvert NSString:options[@"recipient"]];
@@ -19,6 +29,8 @@
             NSDictionary *userInfo = @{NSLocalizedFailureReasonErrorKey: NSLocalizedString(errorMessage, nil)};
             NSError *error = [NSError errorWithDomain:@"com.rnshare" code:1 userInfo:userInfo];
             reject(@"com.rnshare", errorMessage, error);
+            self.resolveBlock = nil;
+            self.rejectBlock = nil;
             return;
         }
 
@@ -35,7 +47,7 @@
         NSURL *URL = [RCTConvert NSURL:options[@"url"]];
         if (URL) {
             BOOL isDataScheme = [URL.scheme.lowercaseString isEqualToString:@"data"];
-    
+
             // Only handling data scheme urls here. To handle the case of URL.isFileURL
             // one could add a case similar to the process in EmailShare.m
             if (isDataScheme) {
@@ -47,7 +59,7 @@
                     reject(@"com.rnshare", @"No data", error);
                     return;
                 }
-    
+
                 NSURL *filePath = [RNShareUtils getPathFromBase64:URL.absoluteString with:data fileName:@"file"];
                 if (filePath) {
                     // public.image typeIdentifier works for both images and files
@@ -61,20 +73,47 @@
             }
         }
 
-
         dispatch_async(dispatch_get_main_queue(), ^{
             UIViewController *ctrl = RCTPresentedViewController();
             [ctrl presentViewController:mc animated:YES completion:NULL];
-            resolve(@[@true, @""]);
         });
+    }
+}
+
+- (void)cleanup {
+    if (self.rejectBlock) {
+        UIViewController *ctrl = RCTPresentedViewController();
+        [ctrl dismissViewControllerAnimated:NO completion:NULL];
+        self.rejectBlock(@"com.rnshare", @"Failed to send SMS.", nil);
+        self.resolveBlock = nil;
+        self.rejectBlock = nil;
     }
 }
 
 - (void)messageComposeViewController:(MFMessageComposeViewController *)controller
                  didFinishWithResult:(MessageComposeResult)result {
+    __weak __typeof__(self) weakSelf = self;
     dispatch_async(dispatch_get_main_queue(), ^{
         UIViewController *ctrl = RCTPresentedViewController();
         [ctrl dismissViewControllerAnimated:YES completion:NULL];
+        __typeof__(self) strongSelf = weakSelf;
+        if (!strongSelf) { return; }
+        switch (result) {
+            case MessageComposeResultSent:
+                if (!strongSelf.resolveBlock) { return; }
+                strongSelf.resolveBlock(@[@true, @"SMS sent successfully."]);
+                break;
+            case MessageComposeResultCancelled:
+                if (!strongSelf.resolveBlock) { return; }
+                strongSelf.resolveBlock(@[@false, @"SMS sending cancelled."]);
+                break;
+            case MessageComposeResultFailed:
+                if (!strongSelf.rejectBlock) { return; }
+                strongSelf.rejectBlock(@"com.rnshare", @"Failed to send SMS.", nil);
+                break;
+        }
+        strongSelf.resolveBlock = nil;
+        strongSelf.rejectBlock = nil;
     });
 }
 
