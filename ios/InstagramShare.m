@@ -44,7 +44,7 @@
     }
     
     if ([[UIApplication sharedApplication] canOpenURL: shareURL]) {
-        [[UIApplication sharedApplication] openURL:shareURL options:@{} completionHandler:nil];
+        [[UIApplication sharedApplication] openURL: shareURL];
         resolve(@[@true, @""]);
     } else {
         // Cannot open instagram
@@ -84,7 +84,7 @@
                               resolve: resolve];
         }
     } else {
-        [[UIApplication sharedApplication] openURL: [NSURL URLWithString:@"instagram://camera"] options:@{} completionHandler:nil];
+        [[UIApplication sharedApplication] openURL: [NSURL URLWithString:@"instagram://camera"]];
         resolve(@[@true, @""]);
     }
 }

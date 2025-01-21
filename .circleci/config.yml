@@ -23,7 +23,7 @@ executors:
   ios_executor:
     parameters:
       resource-class:
-        default: macos.m1.medium.gen1
+        default: macos.x86.medium.gen2
         type: string
       working-directory:
         default: ~/app

@@ -34,7 +34,6 @@ export interface LinkMetadata {
   image?: string;
   remoteVideoUrl?: string;
   video?: string;
-  base64Icon?: string;
 }
 
 export interface ActivityItem {
@@ -73,8 +72,6 @@ interface BaseSocialStoriesShareSingleOptions extends Omit<BaseShareSingleOption
   backgroundTopColor?: string;
   attributionURL?: string;
   backgroundVideo?: string;
-  linkUrl?: string;
-  linkText?: string;
 }
 
 export interface InstagramStoriesShareSingleOptions extends BaseSocialStoriesShareSingleOptions {

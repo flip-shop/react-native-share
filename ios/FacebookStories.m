@@ -87,7 +87,7 @@ RCT_EXPORT_MODULE();
     // Cannot open facebook
     NSString *stringURL = @"https://itunes.apple.com/app/facebook/id284882215";
     NSURL *url = [NSURL URLWithString:stringURL];
-    [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+    [[UIApplication sharedApplication] openURL:url];
 
     NSString *errorMessage = @"Not installed";
     NSDictionary *userInfo = @{NSLocalizedFailureReasonErrorKey: NSLocalizedString(errorMessage, nil)};

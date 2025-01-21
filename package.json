@@ -1,7 +1,7 @@
 {
   "name": "react-native-share",
   "description": "Social share, sending simple data to other apps.",
-  "version": "12.0.3",
+  "version": "10.2.1",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/react-native-community/react-native-share.git"
@@ -22,9 +22,7 @@
     "RNShare.podspec",
     "!**/__tests__",
     "!**/__fixtures__",
-    "!**/__mocks__",
-    "app.plugin.js",
-    "plugin"
+    "!**/__mocks__"
   ],
   "devDependencies": {
     "@babel/core": "^7.23.3",
@@ -32,7 +30,6 @@
     "@babel/runtime": "^7.23.2",
     "@commitlint/cli": "^11.0.0",
     "@commitlint/config-conventional": "^11.0.0",
-    "@expo/config-plugins": "^9.0.10",
     "@react-native/eslint-config": "^0.74.0",
     "@react-native/metro-config": "^0.73.2",
     "@semantic-release/commit-analyzer": "^11.1.0",
@@ -40,7 +37,6 @@
     "@semantic-release/github": "^9.2.1",
     "@semantic-release/npm": "^11.0.1",
     "@semantic-release/release-notes-generator": "^12.1.0",
-    "@tsconfig/node-lts": "^22.0.0",
     "@tsconfig/react-native": "^3.0.2",
     "@types/react": "^18.2.37",
     "@types/react-native": "^0.72.6",
@@ -64,9 +60,7 @@
     "typescript": "^5.2.2"
   },
   "resolutions": {
-    "eslint-plugin-prettier": "5.0.1",
-    "wrap-ansi": "7.0.0",
-    "string-width": "4.1.0"
+    "eslint-plugin-prettier": "5.0.1"
   },
   "keywords": [
     "react-native",
@@ -96,10 +90,9 @@
     "start:ios": "react-native run-ios",
     "lint": "eslint \"src/**/*.{js,ts,tsx}\"  --max-warnings=0",
     "typescript": "tsc --noEmit",
-    "build:expo-plugin": "tsc --project ./plugin/tsconfig.json",
     "validate": "yarn lint && yarn typescript",
     "ci:publish": "npx semantic-release",
-    "prepare": "bob build && yarn build:expo-plugin",
+    "prepare": "bob build",
     "windows": "react-native run-windows"
   },
   "husky": {
