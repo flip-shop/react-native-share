@@ -12,9 +12,9 @@
 @implementation SmsShare
 
 - (void)shareSingle:(NSDictionary *)options
-    reject:(RCTPromiseRejectBlock)reject
-    resolve:(RCTPromiseResolveBlock)resolve {
-    
+             reject:(RCTPromiseRejectBlock)reject
+            resolve:(RCTPromiseResolveBlock)resolve {
+
     if ([options objectForKey:@"message"] && [options objectForKey:@"message"] != [NSNull null]) {
         [self cleanup];
 
@@ -57,7 +57,7 @@
                     reject(@"com.rnshare", @"No data", error);
                     return;
                 }
-    
+
                 NSURL *filePath = [RNShareUtils getPathFromBase64:URL.absoluteString with:data fileName:@"file"];
                 if (filePath) {
                     // public.image typeIdentifier works for both images and files
@@ -88,7 +88,6 @@
     }
 }
 
-
 - (void)messageComposeViewController:(MFMessageComposeViewController *)controller
                  didFinishWithResult:(MessageComposeResult)result {
     __weak __typeof__(self) weakSelf = self;
@@ -96,13 +95,20 @@
         UIViewController *ctrl = RCTPresentedViewController();
         [ctrl dismissViewControllerAnimated:YES completion:NULL];
         __typeof__(self) strongSelf = weakSelf;
-        if (!strongSelf) return;
-        if (result == MessageComposeResultSent) {
-            strongSelf.resolveBlock(@[@true, @"SMS sent successfully."]);
-        } else if (result == MessageComposeResultCancelled) {
-            strongSelf.resolveBlock(@[@false, @"SMS sending cancelled."]);
-        } else {
-            strongSelf.rejectBlock(@"com.rnshare", @"Failed to send SMS.", nil);
+        if (!strongSelf) { return; }
+        switch (result) {
+            case MessageComposeResultSent:
+                if (!strongSelf.resolveBlock) { return; }
+                strongSelf.resolveBlock(@[@true, @"SMS sent successfully."]);
+                break;
+            case MessageComposeResultCancelled:
+                if (!strongSelf.resolveBlock) { return; }
+                strongSelf.resolveBlock(@[@false, @"SMS sending cancelled."]);
+                break;
+            case MessageComposeResultFailed:
+                if (!strongSelf.rejectBlock) { return; }
+                strongSelf.rejectBlock(@"com.rnshare", @"Failed to send SMS.", nil);
+                break;
         }
         strongSelf.resolveBlock = nil;
         strongSelf.rejectBlock = nil;
