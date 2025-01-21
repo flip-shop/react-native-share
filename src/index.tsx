@@ -80,8 +80,8 @@ const RNShare = {
     options = normalizeSingleShareOptions(options);
 
     const shareResult = await NativeRNShare.shareSingle(options);
-    const success = isIOS ? shareResult[0] : shareResult.success
-    const message = isIOS ? shareResult[1] : shareResult.message
+    const success = shareResult.success
+    const message = shareResult.message
 
     const result: ShareSingleResult = {
       success: Boolean(success),
