@@ -1,6 +1,12 @@
 #import "SmsShare.h"
 #import "RNShareUtils.h"
 
+@interface SmsShare ()
+
+@property (nonatomic, copy) RCTPromiseRejectBlock rejectBlock;
+@property (nonatomic, copy) RCTPromiseResolveBlock resolveBlock;
+
+@end
 
 @implementation SmsShare
 
@@ -10,6 +16,10 @@
     resolve:(RCTPromiseResolveBlock)resolve {
 
     if ([options objectForKey:@"message"] && [options objectForKey:@"message"] != [NSNull null]) {
+        [self cleanup];
+
+        self.rejectBlock = reject;
+        self.resolveBlock = resolve;
 
         NSString *message = [RCTConvert NSString:options[@"message"]];
         NSString *recipient = [RCTConvert NSString:options[@"recipient"]];
@@ -65,16 +75,42 @@
         dispatch_async(dispatch_get_main_queue(), ^{
             UIViewController *ctrl = RCTPresentedViewController();
             [ctrl presentViewController:mc animated:YES completion:NULL];
-            resolve(@[@true, @""]);
         });
+    }
+}
+
+- (void)cleanup {
+    if (self.rejectBlock) {
+        UIViewController *ctrl = RCTPresentedViewController();
+        [ctrl dismissViewControllerAnimated:NO completion:NULL];
+        self.rejectBlock(@"com.rnshare", @"Failed to send SMS.", nil);
+        self.resolveBlock = nil;
+        self.rejectBlock = nil;
     }
 }
 
 - (void)messageComposeViewController:(MFMessageComposeViewController *)controller
                  didFinishWithResult:(MessageComposeResult)result {
+    __weak __typeof__(self) weakSelf = self;
     dispatch_async(dispatch_get_main_queue(), ^{
         UIViewController *ctrl = RCTPresentedViewController();
         [ctrl dismissViewControllerAnimated:YES completion:NULL];
+        __typeof__(self) strongSelf = weakSelf;
+        if (!strongSelf) {
+            return;
+        }
+        if (!strongSelf.resolveBlock || !strongSelf.rejectBlock) {
+            return;
+        }
+        if (result == MessageComposeResultSent) {
+            strongSelf.resolveBlock(@[@true, @"SMS sent successfully."]);
+        } else if (result == MessageComposeResultCancelled) {
+            strongSelf.resolveBlock(@[@false, @"SMS sending cancelled."]);
+        } else {
+            strongSelf.rejectBlock(@"com.rnshare", @"Failed to send SMS.", nil);
+        }
+        strongSelf.resolveBlock = nil;
+        strongSelf.rejectBlock = nil;
     });
 }
 

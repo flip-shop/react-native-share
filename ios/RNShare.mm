@@ -300,6 +300,7 @@ RCT_EXPORT_METHOD(open:(NSDictionary *)options
     }
 
     __weak UIActivityViewController* weakShareController = shareController;
+    UIViewController *shareControllerWrapper = [[UIViewController alloc] init];
     shareController.completionWithItemsHandler = ^(NSString *activityType, BOOL completed, __unused NSArray *returnedItems, NSError *activityError) {
         
         // always dismiss since this may be called from cancelled shares
@@ -307,6 +308,7 @@ RCT_EXPORT_METHOD(open:(NSDictionary *)options
         if(weakShareController){
             // closing activity view controller
             [weakShareController dismissViewControllerAnimated:true completion:nil];
+            [shareControllerWrapper dismissViewControllerAnimated:NO completion:nil];
         } else {
             [controller dismissViewControllerAnimated:true completion:nil];
         }
@@ -335,7 +337,10 @@ RCT_EXPORT_METHOD(open:(NSDictionary *)options
     shareController.popoverPresentationController.sourceView = controller.view;
     shareController.popoverPresentationController.sourceRect = [self sourceRectInView:controller.view anchorViewTag:anchorViewTag];
 
-    [controller presentViewController:shareController animated:YES completion:nil];
+    shareControllerWrapper.modalPresentationStyle = UIModalPresentationOverFullScreen;
+    [controller presentViewController:shareControllerWrapper animated:NO completion:^{
+        [shareControllerWrapper presentViewController:shareController animated:YES completion:nil];
+    }];
 
     shareController.view.tintColor = [RCTConvert UIColor:options[@"tintColor"]];
 }
