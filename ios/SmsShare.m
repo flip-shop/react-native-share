@@ -1,7 +1,6 @@
 #import "SmsShare.h"
 #import "RNShareUtils.h"
 
-
 @interface SmsShare ()
 
 @property (nonatomic, copy) RCTPromiseRejectBlock rejectBlock;
@@ -11,9 +10,10 @@
 
 @implementation SmsShare
 
+
 - (void)shareSingle:(NSDictionary *)options
-             reject:(RCTPromiseRejectBlock)reject
-            resolve:(RCTPromiseResolveBlock)resolve {
+    reject:(RCTPromiseRejectBlock)reject
+    resolve:(RCTPromiseResolveBlock)resolve {
 
     if ([options objectForKey:@"message"] && [options objectForKey:@"message"] != [NSNull null]) {
         [self cleanup];
@@ -47,7 +47,7 @@
         NSURL *URL = [RCTConvert NSURL:options[@"url"]];
         if (URL) {
             BOOL isDataScheme = [URL.scheme.lowercaseString isEqualToString:@"data"];
-
+    
             // Only handling data scheme urls here. To handle the case of URL.isFileURL
             // one could add a case similar to the process in EmailShare.m
             if (isDataScheme) {
@@ -59,7 +59,7 @@
                     reject(@"com.rnshare", @"No data", error);
                     return;
                 }
-
+    
                 NSURL *filePath = [RNShareUtils getPathFromBase64:URL.absoluteString with:data fileName:@"file"];
                 if (filePath) {
                     // public.image typeIdentifier works for both images and files
