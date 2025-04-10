@@ -1,7 +1,11 @@
 package cl.json;
 
+import static android.view.ViewGroup.LayoutParams.WRAP_CONTENT;
+
 import android.app.Activity;
 import android.content.Intent;
+import android.app.Application.ActivityLifecycleCallbacks;
+import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,6 +17,11 @@ import com.facebook.react.bridge.ActivityEventListener;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.WritableMap;
+
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import androidx.annotation.NonNull;
 
 import cl.json.social.EmailShare;
 import cl.json.social.FacebookShare;
@@ -47,6 +56,14 @@ public class RNShareImpl implements ActivityEventListener {
     public static final String NAME = "RNShare";
 
     static ReactApplicationContext RCTContext = null;
+    private @Nullable Dialog progressDialog = null;
+
+    private ActivityLifecycleCallbacks hideProgressOnPauseCallback = new DefaultActivityLifecycleCallbacks() {
+        @Override
+        public void onActivityPaused(@NonNull Activity activity) {
+            hideProgressDialog();
+        }
+    };
 
     public static final int SHARE_REQUEST_CODE = 16845;
 
@@ -147,6 +164,36 @@ public class RNShareImpl implements ActivityEventListener {
         RCTContext.addActivityEventListener(this);
     }
 
+    private void setupAndShowProgressDialog() {
+        setupProgressDialogBehaviour();
+        if (progressDialog != null) {
+            progressDialog.show();
+            progressDialog.getWindow().setLayout(WRAP_CONTENT, WRAP_CONTENT); // need to adjust after showing dialog
+        }
+    }
+
+    private void setupProgressDialogBehaviour() {
+        Activity activity = RCTContext.getCurrentActivity();
+        if (activity != null) {
+            progressDialog = createProgressDialog(activity);
+            activity.registerActivityLifecycleCallbacks(hideProgressOnPauseCallback); // register a callback that will hide progress when host activity is paused
+        }
+    }
+
+    private @NonNull Dialog createProgressDialog(@NonNull Activity activity) {
+        Dialog dialog = new Dialog(activity, R.style.ProgressDialogTransparentTheme);
+        View view = LayoutInflater.from(activity).inflate(R.layout.progress_dialog, null);
+        dialog.setContentView(view);
+        return dialog;
+    }
+
+    private void hideProgressDialog() {
+        if (progressDialog != null) {
+            progressDialog.dismiss();
+            progressDialog = null;
+        }
+    }
+
     public Map<String, Object> getConstants() {
         Map<String, Object> constants = new HashMap<>();
         for (SHARES val : SHARES.values()) {
@@ -160,6 +207,7 @@ public class RNShareImpl implements ActivityEventListener {
         try {
             GenericShare share = new GenericShare(RCTContext);
             share.open(options);
+            setupAndShowProgressDialog();
         } catch (ActivityNotFoundException ex) {
             Log.e(NAME,ex.getMessage());
             ex.printStackTrace(System.out);
