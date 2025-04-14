@@ -48,9 +48,7 @@
         if (URL) {
             BOOL isDataScheme = [URL.scheme.lowercaseString isEqualToString:@"data"];
 
-            // Only handling data scheme urls here. To handle the case of URL.isFileURL
-            // one could add a case similar to the process in EmailShare.m
-            if (isDataScheme) {
+            if (URL.fileURL || isDataScheme) {
                 NSError *error;
                 NSData *data = [NSData dataWithContentsOfURL:URL
                                                      options:(NSDataReadingOptions)0
